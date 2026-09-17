@@ -1,0 +1,10 @@
+Sep 08 18:01:12 server sshd[1201]: Accepted password for clara from 192.168.1.15 port 51234 ssh2
+Sep 08 18:03:45 server sshd[1210]: Failed password for admin from 203.0.113.42 port 44211 ssh2
+Sep 08 18:03:51 server sshd[1211]: Failed password for admin from 203.0.113.42 port 44215 ssh2
+Sep 08 18:04:02 server sshd[1212]: Failed password for root from 198.51.100.17 port 55123 ssh2
+Sep 08 18:04:08 server sshd[1213]: Failed password for admin from 203.0.113.42 port 44219 ssh2
+Sep 08 18:04:20 server sshd[1214]: Accepted password for clara from 192.168.1.15 port 51240 ssh2
+Sep 08 18:05:01 server sshd[1215]: Failed password for root from 198.51.100.17 port 55130 ssh2
+Sep 08 18:05:11 server sshd[1216]: Failed password for admin from 203.0.113.42 port 44225 ssh2
+Sep 08 18:05:19 server sshd[1217]: Failed password for guest from 192.0.2.55 port 33001 ssh2
+Sep 08 18:05:27 server sshd[1218]: Failed password for admin from 203.0.113.42 port 44231 ssh2

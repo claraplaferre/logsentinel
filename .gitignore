@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environments
+.venv/
+
+# Local environment / secrets
+.env
+
+# Generated logs
+*.log
+
+# Keep curated sample logs
+!data/*.log
