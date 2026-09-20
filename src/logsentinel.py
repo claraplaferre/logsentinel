@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from pathlib import Path
 from collections import Counter
-
+from datetime import datetime, timedelta
 
 @dataclass
 class SecurityEvent:
-    timestamp: str
+    timestamp: datetime
     username: str
     source_ip: str
     success: bool
@@ -24,6 +24,11 @@ def parse_line(line: str) -> SecurityEvent | None:
         return None
 
     timestamp = " ".join(parts[0:3])
+
+    timestamp = datetime.strptime(
+    timestamp,
+    "%b %d %H:%M:%S",
+    )
 
     if "Failed password" in line:
         success = False
@@ -68,35 +73,69 @@ def group_failed_activity(events: list[SecurityEvent]) -> dict:
             activity_by_ip[event.source_ip] = {
                 "failed_attempts": 0,
                 "targeted_users": set(),
+                "first_seen": event.timestamp,
+                "last_seen": event.timestamp,
             }
 
         activity_by_ip[event.source_ip]["failed_attempts"] += 1
         activity_by_ip[event.source_ip]["targeted_users"].add(event.username)
+        activity_by_ip[event.source_ip]["last_seen"] = event.timestamp
 
     return activity_by_ip
 
 def detect_multi_account_targeting(
     events: list[SecurityEvent],
     min_unique_users: int = 3,
+    time_window_seconds: int = 60,
 ) -> list[SecurityAlert]:
 
-    activity_by_ip = group_failed_activity(events)
-    alerts = []
+    failed_by_ip = {}
 
-    for source_ip, activity in activity_by_ip.items():
-        targeted_users = activity["targeted_users"]
-
-        if len(targeted_users) < min_unique_users:
+    for event in events:
+        if event.success:
             continue
 
-        alert = SecurityAlert(
-            rule_id="LS-001",
-            source_ip=source_ip,
-            failed_attempts=activity["failed_attempts"],
-            targeted_users=targeted_users,
-        )
+        if event.source_ip not in failed_by_ip:
+            failed_by_ip[event.source_ip] = []
 
-        alerts.append(alert)
+        failed_by_ip[event.source_ip].append(event)
+
+    alerts = []
+
+    for source_ip, ip_events in failed_by_ip.items():
+
+        ip_events.sort(key=lambda event: event.timestamp)
+
+        for start_index, start_event in enumerate(ip_events):
+
+            window_events = []
+
+            for event in ip_events[start_index:]:
+
+                if event.timestamp - start_event.timestamp > timedelta(
+                    seconds=time_window_seconds
+                ):
+                    break
+
+                window_events.append(event)
+
+            targeted_users = {
+                event.username
+                for event in window_events
+            }
+
+            if len(targeted_users) < min_unique_users:
+                continue
+
+            alert = SecurityAlert(
+                rule_id="LS-001",
+                source_ip=source_ip,
+                failed_attempts=len(window_events),
+                targeted_users=targeted_users,
+            )
+
+            alerts.append(alert)
+            break
 
     return alerts
 
