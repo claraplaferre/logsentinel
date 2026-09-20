@@ -1,5 +1,7 @@
 from datetime import datetime
-from src.logsentinel import SecurityEvent, detect_multi_account_targeting
+
+from src.logsentinel.models import SecurityEvent
+from src.logsentinel.detection import detect_multi_account_targeting
 
 
 def test_detects_multi_account_targeting():
