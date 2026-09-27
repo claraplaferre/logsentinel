@@ -1,4 +1,5 @@
 from datetime import datetime
+from ipaddress import ip_address
 from pathlib import Path
 
 from .models import SecurityEvent
@@ -26,7 +27,9 @@ def parse_line(line: str) -> SecurityEvent | None:
     username = parts[8]
     source_ip = parts[10]
 	
-    if "." not in source_ip:
+    try:
+    	ip_address(source_ip)
+    except ValueError:
     	return None
    
     return SecurityEvent(
