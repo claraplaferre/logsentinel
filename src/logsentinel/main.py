@@ -1,6 +1,9 @@
 from pathlib import Path
 
-from .detection import detect_multi_account_targeting
+from .detection import (
+    detect_multi_account_targeting,
+    detect_repeated_failures,
+)
 from .parser import load_events
 from .reporting import build_report
 
@@ -13,8 +16,10 @@ def main() -> None:
         return
 
     events = load_events(log_path)
-    alerts = detect_multi_account_targeting(events)
-
+    alerts = [
+        *detect_multi_account_targeting(events),
+        *detect_repeated_failures(events),
+    ]
     print("\nDetected alerts:")
 
     for alert in alerts:

@@ -12,3 +12,4 @@ Sep 08 18:15:01 server sshd[1301]: Failed password for root from 203.0.113.42 po
 Sep 08 18:15:04 server sshd[1302]: Failed password for guest from 203.0.113.42 port 45102 ssh2
 Sep 08 18:15:07 server sshd[1303]: Failed password for backup from 203.0.113.42 port 45103 ssh2
 Sep 08 18:15:10 server sshd[1304]: Failed password for developer from 203.0.113.42 port 45104 ssh2
+Sep 08 18:15:13 server sshd[1305]: Failed password for admin from 203.0.113.42 port 45105 ssh2
