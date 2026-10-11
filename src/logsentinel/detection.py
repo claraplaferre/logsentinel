@@ -1,6 +1,8 @@
 from datetime import timedelta
 
+from src.logsentinel.config import DetectionConfig
 from .models import SecurityEvent, SecurityAlert
+from .config import DetectionConfig
 
 def group_failed_events_by_ip(
     events: list[SecurityEvent],
@@ -46,9 +48,14 @@ def get_time_windows(
 
 def detect_multi_account_targeting(
     events: list[SecurityEvent],
-    min_unique_users: int = 3,
-    time_window_seconds: int = 60,
+    config: DetectionConfig | None = None,
 ) -> list[SecurityAlert]:
+
+    if config is None:
+        config = DetectionConfig()
+
+    min_unique_users = config.ls001_min_unique_users
+    time_window_seconds = config.ls001_time_window_seconds
 
     failed_by_ip = group_failed_events_by_ip(events)
 
@@ -81,9 +88,14 @@ def detect_multi_account_targeting(
 
 def detect_repeated_failures(
     events: list[SecurityEvent],
-    min_failed_attempts: int = 5,
-    time_window_seconds: int = 60,
+    config: DetectionConfig | None = None,
 ) -> list[SecurityAlert]:
+
+    if config is None:
+        config = DetectionConfig()
+
+    min_failed_attempts = config.ls002_min_failed_attempts
+    time_window_seconds = config.ls002_time_window_seconds
 
     failed_by_ip = group_failed_events_by_ip(events)
 

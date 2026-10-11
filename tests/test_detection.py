@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from src.logsentinel.models import SecurityEvent
+from src.logsentinel.config import DetectionConfig
 
 from src.logsentinel.detection import (
     detect_multi_account_targeting,
@@ -17,7 +18,9 @@ def test_detects_multi_account_targeting():
 
     alerts = detect_multi_account_targeting(
         events,
-        min_unique_users=3,
+        config=DetectionConfig(
+            ls001_min_unique_users=3,
+        ),
     )
 
     assert len(alerts) == 1
@@ -34,7 +37,9 @@ def test_does_not_alert_below_threshold():
 
     alerts = detect_multi_account_targeting(
         events,
-        min_unique_users=3,
+        config=DetectionConfig(
+            ls001_min_unique_users=3,
+        ),
     )
 
     assert len(alerts) == 0
@@ -63,8 +68,10 @@ def test_does_not_alert_outside_time_window():
 
     alerts = detect_multi_account_targeting(
         events,
-        min_unique_users=3,
-        time_window_seconds=60,
+        config=DetectionConfig(
+            ls001_min_unique_users=3,
+            ls001_time_window_seconds=60,
+        ),
     )
 
     assert len(alerts) == 0
@@ -101,8 +108,10 @@ def test_detects_suspicious_cluster_despite_later_activity():
 
     alerts = detect_multi_account_targeting(
         events,
-        min_unique_users=3,
-        time_window_seconds=60,
+        config=DetectionConfig(
+            ls001_min_unique_users=3,
+            ls001_time_window_seconds=60,
+        ),
     )
 
     assert len(alerts) == 1
@@ -145,8 +154,10 @@ def test_detects_repeated_failures():
 
     alerts = detect_repeated_failures(
         events,
-        min_failed_attempts=5,
-        time_window_seconds=60,
+        config=DetectionConfig(
+            ls002_min_failed_attempts=5,
+            ls002_time_window_seconds=60,
+        ),
     )
 
     assert len(alerts) == 1
@@ -184,8 +195,10 @@ def test_repeated_failures_below_threshold_does_not_alert():
 
     alerts = detect_repeated_failures(
         events,
-        min_failed_attempts=5,
-        time_window_seconds=60,
+        config=DetectionConfig(
+            ls002_min_failed_attempts=5,
+            ls002_time_window_seconds=60,
+        ),
     )
 
     assert len(alerts) == 0
@@ -226,8 +239,10 @@ def test_repeated_failures_outside_time_window_does_not_alert():
 
     alerts = detect_repeated_failures(
         events,
-        min_failed_attempts=5,
-        time_window_seconds=60,
+        config=DetectionConfig(
+            ls002_min_failed_attempts=5,
+            ls002_time_window_seconds=60,
+        ),
     )
 
     assert len(alerts) == 0
@@ -269,3 +284,42 @@ def test_get_time_windows_groups_events_within_window():
     assert len(windows[1]) == 2
     assert len(windows[2]) == 1
     assert len(windows[3]) == 1
+
+def test_custom_threshold_changes_detection():
+    events = [
+        SecurityEvent(
+            datetime(2026, 9, 8, 18, 0, 0),
+            "root",
+            "203.0.113.50",
+            False,
+        ),
+        SecurityEvent(
+            datetime(2026, 9, 8, 18, 0, 10),
+            "root",
+            "203.0.113.50",
+            False,
+        ),
+        SecurityEvent(
+            datetime(2026, 9, 8, 18, 0, 20),
+            "root",
+            "203.0.113.50",
+            False,
+        ),
+    ]
+
+    default_alerts = detect_repeated_failures(events)
+
+    custom_config = DetectionConfig(
+        ls002_min_failed_attempts=3,
+        ls002_time_window_seconds=60,
+    )
+
+    custom_alerts = detect_repeated_failures(
+        events,
+        config=custom_config,
+    )
+
+    assert len(default_alerts) == 0
+    assert len(custom_alerts) == 1
+    assert custom_alerts[0].rule_id == "LS-002"
+    assert custom_alerts[0].failed_attempts == 3
