@@ -12,10 +12,14 @@ def parse_line(line: str) -> SecurityEvent | None:
         return None
 
     timestamp = " ".join(parts[0:3])
-    timestamp = datetime.strptime(
-        timestamp,
-        "%b %d %H:%M:%S",
-    )
+
+    try:
+        timestamp = datetime.strptime(
+            f"2024 {timestamp}",
+            "%Y %b %d %H:%M:%S",
+        )
+    except ValueError:
+        return None
 
     if "Failed password" in line:
         success = False
@@ -24,8 +28,12 @@ def parse_line(line: str) -> SecurityEvent | None:
     else:
         return None
 
-    username = parts[8]
-    source_ip = parts[10]
+    try:
+        from_index = parts.index("from")
+        username = parts[from_index - 1]
+        source_ip = parts[from_index + 1]
+    except (ValueError, IndexError):
+        return None
 	
     try:
     	ip_address(source_ip)
