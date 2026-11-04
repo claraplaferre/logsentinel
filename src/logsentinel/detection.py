@@ -1,6 +1,5 @@
 from datetime import timedelta
 
-from src.logsentinel.config import DetectionConfig
 from .models import SecurityEvent, SecurityAlert
 from .config import DetectionConfig
 
